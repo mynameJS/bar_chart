@@ -7,8 +7,61 @@
     <link rel="stylesheet" href="index.css" />
   </head>
   <body>
-    <h1>Hello, Vanilla JavaScript!</h1>
-    <button id="clickMe">Click me</button>
+    <h1 id="title">아이엠파인 SD팀 지원자 이재성</h1>
+    <main>
+      <!-- 1. 그래프 영역 -->
+      <section aria-labelledby="graph-title">
+        <h2 id="graph-title">1. 그래프</h2>
+        <div class="bar-chart">
+          <div class="bar" style="height: 75px"></div>
+          <div class="bar" style="height: 20px"></div>
+          <div class="bar" style="height: 80px"></div>
+          <div class="bar" style="height: 100px"></div>
+          <div class="bar" style="height: 70px"></div>
+        </div>
+      </section>
+
+      <!-- 2. 값 편집 (테이블) -->
+      <section aria-labelledby="table-edit-title">
+        <h2 id="table-edit-title">2. 값 편집</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>값</th>
+              <th>삭제</th>
+            </tr>
+          </thead>
+          <tbody id="data-table-body">
+            <!-- JS로 행 추가됨 -->
+          </tbody>
+        </table>
+        <button id="apply-table">Apply</button>
+      </section>
+
+      <!-- 3. 값 추가 -->
+      <section aria-labelledby="add-value-title">
+        <h2 id="add-value-title">3. 값 추가</h2>
+        <form id="add-form">
+          <label>
+            <input type="text" name="id" placeholder="ID" required />
+          </label>
+          <label>
+            <input type="number" name="value" placeholder="VALUE" required />
+          </label>
+          <button type="submit">Add</button>
+        </form>
+      </section>
+
+      <!-- 4. JSON 고급 편집 -->
+      <section aria-labelledby="json-edit-title">
+        <h2 id="json-edit-title">4. 값 고급 편집</h2>
+        <form id="json-form">
+          <textarea name="json" rows="10" cols="50" required></textarea>
+          <button type="submit">Apply</button>
+        </form>
+      </section>
+    </main>
 
     <script src="main.js"></script>
   </body>
