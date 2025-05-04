@@ -1,10 +1,4 @@
-// 단일 요소 선택
-const $ = selector => document.querySelector(selector);
-
-// 여러 요소 선택
-const $$ = selector => document.querySelectorAll(selector);
-
-// 요소 생성
+const $ = sel => document.querySelector(sel);
 const createEl = (tag, className = '', text = '') => {
   const el = document.createElement(tag);
   if (className) el.className = className;
@@ -12,91 +6,77 @@ const createEl = (tag, className = '', text = '') => {
   return el;
 };
 
-let initData;
+const data = [
+  { id: 0, value: 75 },
+  { id: 1, value: 20 },
+  { id: 2, value: 80 },
+  { id: 3, value: 100 },
+  { id: 4, value: 70 },
+];
 
-const initJSONString = `
-[
-  {
-    "id": 0,
-    "value": 75
-  },
-  {
-    "id": 1,
-    "value": 20
-  },
-  {
-    "id": 2,
-    "value": 80
-  },
-  {
-    "id": 3,
-    "value": 100
-  },
-  {
-    "id": 4,
-    "value": 70
-  }
-]
-`;
-
-try {
-  data = JSON.parse(initJSONString);
-} catch (e) {
-  alert('초기 데이터 파싱에 실패했습니다.');
-  data = [];
-}
+const getTicks = max => {
+  const mid = Math.round(max / 2);
+  return [0, mid, max];
+};
 
 const renderBarChart = () => {
-  const container = $('.bar-chart');
-  container.innerHTML = '';
+  const barsBox = $('.bars');
+  barsBox.innerHTML = '';
 
-  data.forEach(item => {
+  const max = Math.max(...data.map(d => d.value), 1);
+  const yTicks = getTicks(max);
+
+  // Y축 눈금
+  yTicks.forEach(val => {
+    const tick = createEl('div', 'y-tick', val);
+    tick.style.bottom = `${(val / max) * 90}%`;
+    barsBox.appendChild(tick);
+  });
+
+  // 바 그리기
+  data.forEach((item, i) => {
     const bar = createEl('div', 'bar');
-    bar.style.height = `${item.value}px`;
-    container.appendChild(bar);
+    bar.style.left = `${((i + 1) / (data.length + 1)) * 100}%`;
+    bar.style.height = `${(item.value / max) * 90}%`;
+
+    // 값 표시
+    const valueLabel = createEl('div', 'bar-value', item.value);
+    bar.appendChild(valueLabel);
+
+    // ID 라벨
+    const label = createEl('div', 'bar-label', item.id);
+    bar.appendChild(label);
+
+    barsBox.appendChild(bar);
   });
 };
 
 const renderTable = () => {
   const tbody = $('#data-table-body');
-  tbody.innerHTML = ''; // 기존 초기화
-
-  data.forEach((item, index) => {
-    const tr = document.createElement('tr');
-
-    // ID 셀 (수정 불가)
-    const tdId = createEl('td', '', item.id);
-    tdId.style.userSelect = 'none'; // 드래그 방지
-
-    // 값 셀 (수정 가능 input)
-    const tdValue = document.createElement('td');
+  tbody.innerHTML = '';
+  data.forEach((item, i) => {
+    const tr = createEl('tr');
+    tr.appendChild(createEl('td', '', item.id));
+    const valTd = createEl('td');
     const input = document.createElement('input');
     input.type = 'number';
     input.value = item.value;
-    input.addEventListener('input', e => {
-      data[index].value = parseInt(e.target.value, 10) || 0;
-    });
-    tdValue.appendChild(input);
-
-    // 삭제 셀
-    const tdDelete = document.createElement('td');
+    input.oninput = e => {
+      data[i].value = parseInt(e.target.value, 10) || 0;
+    };
+    valTd.appendChild(input);
+    tr.appendChild(valTd);
+    const delTd = createEl('td');
     const delBtn = createEl('button', '', '삭제');
-    delBtn.addEventListener('click', () => {
-      data.splice(index, 1);
+    delBtn.onclick = () => {
+      data.splice(i, 1);
       renderAll();
-    });
-    tdDelete.appendChild(delBtn);
-
-    tr.appendChild(tdId);
-    tr.appendChild(tdValue);
-    tr.appendChild(tdDelete);
+    };
+    delTd.appendChild(delBtn);
+    tr.appendChild(delTd);
     tbody.appendChild(tr);
   });
-
-  // Apply 버튼 기능
-  $('#apply-table').onclick = () => {
-    renderAll(); // 입력값 반영 후 전체 재렌더
-  };
+  $('#apply-table').onclick = () => renderAll();
 };
 
 const renderTextarea = () => {
@@ -104,30 +84,35 @@ const renderTextarea = () => {
 };
 
 const setupAddForm = () => {
-  const form = $('#add-form');
-
-  form.addEventListener('submit', e => {
+  $('#add-form').onsubmit = e => {
     e.preventDefault();
-
-    const formData = new FormData(form);
-    const id = formData.get('id');
-    const value = parseInt(formData.get('value'), 10);
-
-    // 유효성 검사
-    if (data.some(item => item.id == id)) {
+    const fd = new FormData(e.target);
+    const id = fd.get('id');
+    const value = parseInt(fd.get('value'), 10);
+    if (data.some(d => d.id == id)) {
       alert(`ID "${id}"는 이미 존재합니다.`);
       return;
     }
-
     if (isNaN(value)) {
-      alert('숫자 값을 입력해 주세요.');
+      alert('숫자를 입력해주세요');
       return;
     }
-
     data.push({ id, value });
-    form.reset(); // 입력 필드 초기화
-    renderAll(); // 전체 다시 그리기
-  });
+    e.target.reset();
+    renderAll();
+  };
+};
+
+$('#json-form').onsubmit = e => {
+  e.preventDefault();
+  try {
+    const parsed = JSON.parse(e.target.json.value);
+    if (!Array.isArray(parsed)) throw new Error();
+    data = parsed;
+    renderAll();
+  } catch {
+    alert('올바른 JSON 형식이 아닙니다.');
+  }
 };
 
 const renderAll = () => {
@@ -136,7 +121,6 @@ const renderAll = () => {
   renderTextarea();
 };
 
-// 데이터 초기화 이벤트
 document.addEventListener('DOMContentLoaded', () => {
   setupAddForm();
   renderAll();
