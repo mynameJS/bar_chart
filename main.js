@@ -6,13 +6,15 @@ const createEl = (tag, className = '', text = '') => {
   return el;
 };
 
-const data = [
-  { id: 0, value: 75 },
-  { id: 1, value: 20 },
-  { id: 2, value: 80 },
-  { id: 3, value: 100 },
-  { id: 4, value: 70 },
+let data = [
+  { id: 'a', value: 75 },
+  { id: 'b', value: 20 },
+  { id: 'c', value: 80 },
+  { id: 'd', value: 100 },
+  { id: 'e', value: 70 },
 ];
+
+let editingData = structuredClone(data); // 편집용 복사본
 
 const getTicks = max => {
   const mid = Math.round(max / 2);
@@ -54,33 +56,36 @@ const renderBarChart = () => {
 const renderTable = () => {
   const tbody = $('#data-table-body');
   tbody.innerHTML = '';
-  data.forEach((item, i) => {
+  editingData.forEach((item, i) => {
     const tr = createEl('tr');
     tr.appendChild(createEl('td', '', item.id));
+
     const valTd = createEl('td');
     const input = document.createElement('input');
     input.type = 'number';
     input.value = item.value;
     input.oninput = e => {
-      data[i].value = parseInt(e.target.value, 10) || 0;
+      editingData[i].value = parseInt(e.target.value, 10) || 0;
     };
     valTd.appendChild(input);
     tr.appendChild(valTd);
+
     const delTd = createEl('td');
     const delBtn = createEl('button', '', '삭제');
     delBtn.onclick = () => {
-      data.splice(i, 1);
-      renderAll();
+      editingData.splice(i, 1);
+      renderTable(); // 테이블만 다시 렌더링
     };
     delTd.appendChild(delBtn);
     tr.appendChild(delTd);
+
     tbody.appendChild(tr);
   });
-  $('#apply-table').onclick = () => renderAll();
-};
 
-const renderTextarea = () => {
-  $('#json-form textarea').value = JSON.stringify(data, null, 2);
+  $('#apply-table').onclick = () => {
+    data = structuredClone(editingData); // apply 시 반영
+    renderAll();
+  };
 };
 
 const setupAddForm = () => {
@@ -103,6 +108,10 @@ const setupAddForm = () => {
   };
 };
 
+const renderTextarea = () => {
+  $('#json-form textarea').value = JSON.stringify(data, null, 2); // 휴먼에러 방지 하나 넣어야댐
+};
+
 $('#json-form').onsubmit = e => {
   e.preventDefault();
   try {
@@ -116,6 +125,7 @@ $('#json-form').onsubmit = e => {
 };
 
 const renderAll = () => {
+  editingData = structuredClone(data); // 원본 기준 복사
   renderBarChart();
   renderTable();
   renderTextarea();
